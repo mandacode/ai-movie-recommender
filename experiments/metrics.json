@@ -1,0 +1,8 @@
+{
+  "popularity_baseline": {
+    "k": 10,
+    "precision@10": 0.037,
+    "recall@10": 0.0594,
+    "ndcg@10": 0.0545
+  }
+}
