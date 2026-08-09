@@ -36,9 +36,13 @@ def load_metrics(path: str | Path) -> dict[str, dict]:
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
 
+# Tokens that should stay upper-cased in display names instead of title-cased.
+_ACRONYMS = {"cf": "CF"}
+
+
 def _display_name(model_key: str) -> str:
-    """``"popularity_baseline"`` → ``"Popularity Baseline"``."""
-    return model_key.replace("_", " ").title()
+    """``"popularity_baseline"`` → ``"Popularity Baseline"``; ``"cf_x"`` → ``"CF X"``."""
+    return " ".join(_ACRONYMS.get(w, w.title()) for w in model_key.split("_"))
 
 
 def render_metrics_table(metrics: dict[str, dict]) -> str:

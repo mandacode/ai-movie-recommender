@@ -28,11 +28,13 @@ RELEVANCE_THRESHOLD = 4.0   # a held-out rating >= 4.0 counts as "liked"
 METRICS_PATH = Path("experiments/metrics.json")
 
 # Model registry: JSON key → recommender. Add XGBoost etc. here later.
+# We keep BOTH CF variants to tell the story: the "textbook" adjusted-cosine one
+# loses to popularity, while the positive-only (implicit) one wins — because
+# ranking cares about "liked or not", not predicted star count.
 MODELS: dict[str, Recommender] = {
     "popularity_baseline": PopularityRecommender(scoring="count"),
-    # positive-only (implicit) CF won a benchmark vs adjusted-cosine / raw —
-    # ranking cares about "liked or not", not predicted star count.
-    "collaborative_filtering": ItemCFRecommender(min_item_ratings=5, positive_only=True),
+    "cf_adjusted_cosine": ItemCFRecommender(min_item_ratings=5, center=True),
+    "cf_positive_only": ItemCFRecommender(min_item_ratings=5, positive_only=True),
 }
 
 

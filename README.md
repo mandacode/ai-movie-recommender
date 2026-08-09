@@ -63,12 +63,30 @@ python scripts/update_readme_metrics.py # regenerate the table below
 Protocol: per-user leave-last-10 split; an item is *relevant* when its held-out
 rating is ≥ 4.0.
 
+**Models compared**
+
+- **Popularity Baseline** — recommends the globally most-rated movies to
+  everyone. A trivial but famously strong baseline.
+- **CF Adjusted Cosine** — the *textbook* item-based collaborative filter:
+  ratings are centred by each user's mean before computing cosine similarity.
+- **CF Positive Only** — an implicit-feedback variant that uses only "liked"
+  (≥ 4.0) interactions as a binary signal.
+
 <!-- EVALUATION_START -->
 | Model | Precision@10 | Recall@10 | NDCG@10 |
 | --- | ---: | ---: | ---: |
 | Popularity Baseline | 0.037 | 0.059 | 0.054 |
-| Collaborative Filtering | 0.056 | 0.096 | 0.082 |
+| CF Adjusted Cosine | 0.024 | 0.044 | 0.040 |
+| CF Positive Only | 0.056 | 0.096 | 0.082 |
 <!-- EVALUATION_END -->
+
+**Key finding.** The "textbook" adjusted-cosine CF actually *loses* to the
+trivial popularity baseline. Adjusted cosine is tuned for **rating prediction**
+(minimising RMSE on the star value), which is the wrong objective for **top-N
+ranking**. Switching to a **positive-only** signal — modelling *whether* a user
+liked an item rather than *how much* — beats the baseline by ~50% across every
+metric. The lesson: benchmark variants against a baseline; don't assume the
+canonical formula optimises your actual objective.
 
 ## Status
 

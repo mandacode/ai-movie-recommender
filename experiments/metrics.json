@@ -5,7 +5,13 @@
     "recall@10": 0.0594,
     "ndcg@10": 0.0545
   },
-  "collaborative_filtering": {
+  "cf_adjusted_cosine": {
+    "k": 10,
+    "precision@10": 0.0243,
+    "recall@10": 0.0438,
+    "ndcg@10": 0.0397
+  },
+  "cf_positive_only": {
     "k": 10,
     "precision@10": 0.0564,
     "recall@10": 0.0955,
