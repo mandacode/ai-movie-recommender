@@ -17,7 +17,7 @@ from pathlib import Path
 from src.data import load_movielens
 from src.eda import summarize
 from src.evaluation import evaluate
-from src.recommenders import PopularityRecommender
+from src.recommenders import ItemCFRecommender, PopularityRecommender
 from src.recommenders.base import Recommender
 from src.reporting import save_metrics
 from src.split import per_user_leave_last_n
@@ -27,9 +27,12 @@ LEAVE_N = 10                # per user, hold out their N most-recent ratings
 RELEVANCE_THRESHOLD = 4.0   # a held-out rating >= 4.0 counts as "liked"
 METRICS_PATH = Path("experiments/metrics.json")
 
-# Model registry: JSON key → recommender. Add CF / XGBoost here later.
+# Model registry: JSON key → recommender. Add XGBoost etc. here later.
 MODELS: dict[str, Recommender] = {
     "popularity_baseline": PopularityRecommender(scoring="count"),
+    # positive-only (implicit) CF won a benchmark vs adjusted-cosine / raw —
+    # ranking cares about "liked or not", not predicted star count.
+    "collaborative_filtering": ItemCFRecommender(min_item_ratings=5, positive_only=True),
 }
 
 

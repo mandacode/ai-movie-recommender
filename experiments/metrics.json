@@ -4,5 +4,11 @@
     "precision@10": 0.037,
     "recall@10": 0.0594,
     "ndcg@10": 0.0545
+  },
+  "collaborative_filtering": {
+    "k": 10,
+    "precision@10": 0.0564,
+    "recall@10": 0.0955,
+    "ndcg@10": 0.0817
   }
 }

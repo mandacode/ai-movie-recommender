@@ -67,6 +67,7 @@ rating is ≥ 4.0.
 | Model | Precision@10 | Recall@10 | NDCG@10 |
 | --- | ---: | ---: | ---: |
 | Popularity Baseline | 0.037 | 0.059 | 0.054 |
+| Collaborative Filtering | 0.056 | 0.096 | 0.082 |
 <!-- EVALUATION_END -->
 
 ## Status

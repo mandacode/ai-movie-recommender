@@ -1,6 +1,7 @@
-# --- Core (baseline pipeline) ---
+# --- Core (pipeline + collaborative filtering) ---
 pandas>=2.2
 numpy>=1.26
+scipy>=1.12          # sparse matrices for item-based CF
 
 # --- UI / dashboard ---
 streamlit>=1.36
@@ -13,8 +14,5 @@ python-dotenv>=1.0
 pytest>=8.0
 
 # --- Later stages (uncomment as we add models) ---
-# scikit-learn>=1.4        # collaborative filtering, utilities
-# scipy>=1.12              # sparse matrices for CF
+# scikit-learn>=1.4        # utilities
 # xgboost>=2.0             # learning-to-rank
-# sentence-transformers    # embeddings
-# anthropic>=0.40          # LLM-based explanations
