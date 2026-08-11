@@ -22,11 +22,12 @@ def _tokens(q: str) -> list[str]:
     return re.findall(r"\w+", q.lower())
 
 
-def _rrf(*rankings: list[int]) -> list[int]:
+def _rrf(*weighted: tuple[list[int], float]) -> list[int]:
+    """Weighted Reciprocal Rank Fusion. Each arg is ``(ranking, weight)``."""
     scores: dict[int, float] = {}
-    for ranking in rankings:
+    for ranking, w in weighted:
         for rank, mid in enumerate(ranking):
-            scores[mid] = scores.get(mid, 0.0) + 1.0 / (RRF_K + rank)
+            scores[mid] = scores.get(mid, 0.0) + w / (RRF_K + rank)
     return sorted(scores, key=scores.get, reverse=True)
 
 
@@ -39,9 +40,12 @@ class HybridSearch:
         if not toks:
             return []
         tsquery = " | ".join(f"{t}:*" for t in toks)  # prefix OR match
+        # Rank by field-weighted text relevance × a popularity boost, so canonical
+        # titles (e.g. Lord of the Rings) beat obscure same-keyword titles.
         rows = query(
             "SELECT movie_id FROM movies WHERE tsv @@ to_tsquery('english', %s) "
-            "ORDER BY ts_rank(tsv, to_tsquery('english', %s)) DESC LIMIT %s",
+            "ORDER BY ts_rank(tsv, to_tsquery('english', %s)) * ln(2 + coalesce(popularity, 0)) "
+            "DESC LIMIT %s",
             (tsquery, tsquery, n),
         )
         return [r[0] for r in rows]
@@ -69,7 +73,9 @@ class HybridSearch:
         q = q.strip()
         if not q:
             return []
-        return _rrf(self._fts_search(q), self._semantic_search(q))[:k]
+        # FTS weighted higher: keyword/title queries shouldn't be diluted by
+        # semantic noise, while vibe queries (empty FTS) still lean on semantic.
+        return _rrf((self._fts_search(q), 2.0), (self._semantic_search(q), 1.0))[:k]
 
 
 def _known_item_metrics(ranked: list[int], target: int, k: int = 10):

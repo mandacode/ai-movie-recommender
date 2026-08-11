@@ -43,11 +43,12 @@ CREATE TABLE movies (
     overview  TEXT,
     poster    TEXT,
     backdrop  TEXT,
-    runtime   INT,
-    director  TEXT,
-    cast_top  TEXT[],
-    tsv       tsvector,
-    embedding vector(384)
+    runtime    INT,
+    director   TEXT,
+    cast_top   TEXT[],
+    popularity INT DEFAULT 0,
+    tsv        tsvector,
+    embedding  vector(384)
 );
 CREATE TABLE ratings (
     user_id INT, movie_id INT, rating REAL, ts BIGINT
@@ -115,17 +116,20 @@ def main() -> None:
             title = clean_title(row.title)
             genres = [] if row.genres == "(no genres listed)" else row.genres.split("|")
             year = int(row.title[-5:-1]) if row.title.rstrip().endswith(")") and row.title[-5:-1].isdigit() else None
-            search_text = " ".join(filter(None, [
-                title, " ".join(genres), meta.get("overview") or "",
-                meta.get("director") or "", " ".join(meta.get("cast", [])),
-            ]))
+            # Field-weighted FTS: title = A (highest), people/genres = B, plot = C,
+            # so a title hit ranks well above a mention buried in an overview.
+            b_text = " ".join(filter(None, [
+                " ".join(genres), meta.get("director") or "", " ".join(meta.get("cast", []))]))
             cur.execute(
                 "INSERT INTO movies (movie_id,title,year,genres,overview,poster,backdrop,"
                 "runtime,director,cast_top,tsv,embedding) VALUES "
-                "(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, to_tsvector('english',%s), %s)",
+                "(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, "
+                "setweight(to_tsvector('english',%s),'A') || "
+                "setweight(to_tsvector('english',%s),'B') || "
+                "setweight(to_tsvector('english',%s),'C'), %s)",
                 (mid, title, year, genres, meta.get("overview"), meta.get("poster"),
                  meta.get("backdrop"), meta.get("runtime"), meta.get("director"),
-                 meta.get("cast", []), search_text, vec(mid)),
+                 meta.get("cast", []), title, b_text, meta.get("overview") or "", vec(mid)),
             )
     con.commit()
 
@@ -136,6 +140,11 @@ def main() -> None:
                 copy.write_row((int(r.userId), int(r.movieId), float(r.rating), int(r.timestamp)))
     con.commit()
 
+    # Popularity = number of ratings per movie (used as a search ranking boost).
+    con.execute(
+        "UPDATE movies m SET popularity = "
+        "(SELECT count(*) FROM ratings r WHERE r.movie_id = m.movie_id)"
+    )
     con.execute(INDEXES)
     con.commit()
     n_emb = con.execute("SELECT count(*) FROM movies WHERE embedding IS NOT NULL").fetchone()[0]
