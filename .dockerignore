@@ -1,0 +1,10 @@
+**/__pycache__
+**/*.pyc
+backend/.venv
+backend/datasets/ml-32m
+backend/datasets/ml-32m-sample
+frontend/node_modules
+frontend/dist
+.git
+.idea
+_to_delete

@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 DB = ROOT / "datasets" / "tmdb_cache.db"
-OUT = ROOT / "datasets" / "ml-32m-sample" / "desc_emb.npz"
+OUT = ROOT / "datasets" / "ml-latest-small" / "desc_emb.npz"
 MODEL = "all-MiniLM-L6-v2"
 
 

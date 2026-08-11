@@ -1,0 +1,30 @@
+# Mandaflix — full stack: Postgres (pgvector) + FastAPI (serving the built frontend).
+# The app is exposed only on localhost:8000; a Cloudflare Tunnel fronts it publicly.
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_PASSWORD: mandaflix
+      POSTGRES_DB: mandaflix
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://postgres:mandaflix@db:5432/mandaflix
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8000:8000"   # cloudflared connects here; not exposed to the LAN
+    restart: unless-stopped
+
+volumes:
+  pgdata:

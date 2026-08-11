@@ -93,6 +93,22 @@ class SVDRecommender(Recommender):
         u = self._user_factors[self._user_pos[user_id]]
         return u @ self._item_factors
 
+    def fold_in_scores(self, liked_movie_ids) -> np.ndarray | None:
+        """Score every item for an ad-hoc user defined by their liked movies.
+
+        Folds the liked items' latent vectors into a user vector (item factors
+        stay fixed) — the standard way to serve *new users* and *fresh likes*
+        in real time without retraining. Returns ``None`` if none of the liked
+        movies are in the model (caller should fall back, e.g. to popularity).
+        """
+        if self._item_factors is None:
+            return None
+        pos = [self._item_pos[m] for m in liked_movie_ids if m in self._item_pos]
+        if not pos:
+            return None
+        user_vec = self._item_factors[:, pos].mean(axis=1)  # k-dim, fold-in
+        return user_vec @ self._item_factors                 # score per item
+
     @property
     def item_ids(self) -> np.ndarray | None:
         return self._item_ids

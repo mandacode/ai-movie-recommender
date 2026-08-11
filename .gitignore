@@ -1,14 +1,23 @@
-.venv/
-__pycache__/
+# Python
+**/.venv/
+**/__pycache__/
 *.pyc
+.env
+.pytest_cache/
+
+# Node / frontend
+frontend/node_modules/
+frontend/dist/
+
+# Editors / OS
 .DS_Store
 .idea/
-.env
 
-# Large / regenerable data artifacts (keep out of git)
-datasets/ml-32m/
-datasets/ml-32m-sample/
-datasets/tmdb_cache.db
+# Large / regenerable data artifacts (shipped to the server out-of-band, not git)
+backend/datasets/ml-32m/
+backend/datasets/ml-32m-sample/
+backend/datasets/tmdb_cache.db
 *.npy
 *.npz
 *.parquet
+_to_delete/
