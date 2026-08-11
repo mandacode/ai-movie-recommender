@@ -19,6 +19,7 @@ services:
       dockerfile: backend/Dockerfile
     environment:
       DATABASE_URL: postgresql://postgres:mandaflix@db:5432/mandaflix
+      HF_HUB_OFFLINE: "1"          # use the image-baked model only; never ping HF
     depends_on:
       db:
         condition: service_healthy
