@@ -2,11 +2,11 @@
 
 The app is a single origin: FastAPI serves both `/api/*` and the built React
 frontend. Docker Compose runs it alongside Postgres (pgvector). A Cloudflare
-Tunnel fronts it at `https://mandaflix.projects.krystianjarmul.dev`.
+Tunnel fronts it at `https://mandaflix.krystianjarmul.dev`.
 
 ```
 Cloudflare Tunnel ──► app (uvicorn :8000) ──► db (pgvector)
-   mandaflix.projects.krystianjarmul.dev        API + built frontend
+   mandaflix.krystianjarmul.dev        API + built frontend
 ```
 
 ## 1. Ship the code + data to the server
@@ -29,27 +29,29 @@ curl -s localhost:8000/api/genres   # smoke test
 
 The app listens on `127.0.0.1:8000` only (not the LAN) — the tunnel reaches it.
 
-## 3. Cloudflare Tunnel
+## 3. Cloudflare Tunnel (dedicated, isolated)
 
-Add an ingress rule to the **existing** tunnel config (the one already serving
-cannabase), typically `~/.cloudflared/config.yml`:
+mandaflix runs its **own** tunnel via the `cloudflared` service in
+`docker-compose.yml` — separate from any other tunnel on the host.
 
-```yaml
-ingress:
-  - hostname: mandaflix.projects.krystianjarmul.dev
-    service: http://localhost:8000
-  # ... existing cannabase rule(s) ...
-  - service: http_status:404       # keep the catch-all last
-```
+1. In the Cloudflare **Zero Trust** dashboard (account that owns
+   `krystianjarmul.dev`): **Networks → Tunnels → Create a tunnel** →
+   **Cloudflared** → name it `mandaflix`. Copy the connector **token**.
+2. Add a **Public Hostname** to that tunnel:
+   `mandaflix.krystianjarmul.dev` → **HTTP** → `app:8000` (DNS is auto-created).
+3. On the server, put the token in `~/mandaflix/.env` (git-ignored, mode 600):
 
-Route the DNS record and reload:
+   ```bash
+   printf 'TUNNEL_TOKEN=%s\n' 'eyJ...' > ~/mandaflix/.env && chmod 600 ~/mandaflix/.env
+   ```
+4. Start the connector:
 
-```bash
-cloudflared tunnel route dns <TUNNEL_NAME> mandaflix.projects.krystianjarmul.dev
-sudo systemctl restart cloudflared      # or: docker restart cloudflared
-```
+   ```bash
+   docker compose up -d cloudflared
+   ```
 
-Visit https://mandaflix.projects.krystianjarmul.dev.
+The connector reaches the app over the compose network (`app:8000`), so the app
+port never needs public exposure. Visit https://mandaflix.krystianjarmul.dev.
 
 ## 4. Nightly retrain (optional)
 

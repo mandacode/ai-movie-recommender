@@ -23,7 +23,19 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "127.0.0.1:8000:8000"   # cloudflared connects here; not exposed to the LAN
+      - "127.0.0.1:8000:8000"   # local smoke tests; public access is via the tunnel
+    restart: unless-stopped
+
+  # Dedicated Cloudflare tunnel for mandaflix (isolated from cannabase/travatar).
+  # Public hostname (mandaflix.krystianjarmul.dev → http://app:8000) is set in
+  # the Cloudflare dashboard; TUNNEL_TOKEN comes from a local .env.
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?set TUNNEL_TOKEN in .env}
+    depends_on:
+      - app
     restart: unless-stopped
 
 volumes:
