@@ -37,7 +37,7 @@ def load_metrics(path: str | Path) -> dict[str, dict]:
 
 
 # Tokens that should stay upper-cased in display names instead of title-cased.
-_ACRONYMS = {"cf": "CF"}
+_ACRONYMS = {"cf": "CF", "svd": "SVD", "xgboost": "XGBoost", "ndcg": "NDCG"}
 
 
 def _display_name(model_key: str) -> str:

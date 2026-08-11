@@ -2,6 +2,11 @@
 pandas>=2.2
 numpy>=1.26
 scipy>=1.12          # sparse matrices for item-based CF
+scikit-learn>=1.4    # TruncatedSVD (matrix factorization)
+xgboost>=2.0         # learning-to-rank ranker
+
+# --- Content features / semantic search (TMDB descriptions) ---
+sentence-transformers>=3.0   # description embeddings + semantic search
 
 # --- UI / dashboard ---
 streamlit>=1.36
@@ -12,7 +17,3 @@ python-dotenv>=1.0
 
 # --- Dev / tests ---
 pytest>=8.0
-
-# --- Later stages (uncomment as we add models) ---
-# scikit-learn>=1.4        # utilities
-# xgboost>=2.0             # learning-to-rank

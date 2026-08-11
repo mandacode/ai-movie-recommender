@@ -22,9 +22,10 @@ LIKE_THRESHOLD = 4.0  # a rating >= this means the user "liked" the movie
 class MovieTools:
     """Grounded lookups + recommendations over a MovieLens dataset."""
 
-    def __init__(self, ml: MovieLens, model: Recommender):
+    def __init__(self, ml: MovieLens, model: Recommender, semantic=None):
         self.ml = ml
         self.model = model
+        self.semantic = semantic  # optional SemanticSearch backend (may be None)
         self._title = ml.movies.set_index("movieId")["title"]
         self._genres = ml.movies.set_index("movieId")["genres"]
         self._n_ratings = ml.ratings.groupby("movieId").size()
@@ -81,6 +82,16 @@ class MovieTools:
         counts = others.groupby("movieId").size().sort_values(ascending=False).head(k)
         return [self._movie_row(mid, co_fans=int(c)) for mid, c in counts.items()]
 
+    def search_by_description(self, query: str, k: int = 5) -> list[dict[str, Any]]:
+        """Find movies whose plot/theme matches a free-text description.
+
+        Uses semantic (embedding) search over TMDB overviews — answers queries
+        collaborative filtering can't, e.g. "a heist with a clever twist".
+        """
+        if self.semantic is None:
+            return [{"error": "semantic search unavailable (no description embeddings)"}]
+        return self.semantic.search(query, k=k)
+
     # --- dispatch ----------------------------------------------------------
 
     def call(self, name: str, arguments: dict[str, Any]) -> Any:
@@ -134,6 +145,21 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
                     "k": {"type": "integer", "description": "How many to return (default 10).", "default": 10},
                 },
                 "required": ["user_id"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "search_by_description",
+            "description": "Semantic search over movie plots/themes for free-text ideas like 'a heist with a clever twist' or 'lonely robot finds friendship'. Use when the user describes a vibe or plot rather than naming a movie.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "Free-text description of the desired movie."},
+                    "k": {"type": "integer", "description": "How many to return (default 5).", "default": 5},
+                },
+                "required": ["query"],
             },
         },
     },

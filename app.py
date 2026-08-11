@@ -53,9 +53,12 @@ def get_fitted_model() -> Recommender:
 
 @st.cache_resource(show_spinner="Preparing chat agent…")
 def get_agent() -> MovieChatAgent:
+    from src.semantic import SemanticSearch
+
     ml = load_movielens()
     model = PopularityRecommender(scoring="count").fit(ml.ratings)
-    return MovieChatAgent(MovieTools(ml, model))
+    semantic = SemanticSearch.load_if_available()  # None if embeddings absent
+    return MovieChatAgent(MovieTools(ml, model, semantic=semantic))
 
 
 # --- tabs ------------------------------------------------------------------

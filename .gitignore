@@ -4,3 +4,11 @@ __pycache__/
 .DS_Store
 .idea/
 .env
+
+# Large / regenerable data artifacts (keep out of git)
+datasets/ml-32m/
+datasets/ml-32m-sample/
+datasets/tmdb_cache.db
+*.npy
+*.npz
+*.parquet

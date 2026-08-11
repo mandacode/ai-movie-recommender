@@ -78,6 +78,8 @@ rating is ≥ 4.0.
 | Popularity Baseline | 0.037 | 0.059 | 0.054 |
 | CF Adjusted Cosine | 0.024 | 0.044 | 0.040 |
 | CF Positive Only | 0.056 | 0.096 | 0.082 |
+| SVD | 0.059 | 0.096 | 0.086 |
+| XGBoost | 0.040 | 0.064 | 0.057 |
 <!-- EVALUATION_END -->
 
 **Key finding.** The "textbook" adjusted-cosine CF actually *loses* to the

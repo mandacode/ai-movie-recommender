@@ -100,21 +100,32 @@ class ItemCFRecommender(Recommender):
         self._Xn = (inv @ X).tocsr()
         return self
 
+    def score_vector(self, user_id: int) -> np.ndarray | None:
+        """Return the raw CF score for every item (aligned with ``self._item_ids``).
+
+        Exposed so other models (e.g. the XGBoost ranker) can use the CF score
+        as a feature. Returns ``None`` for unknown users.
+        """
+        if self._Xn is None or user_id not in self._user_pos:
+            return None
+        s_u = self._Rc[self._user_pos[user_id]]
+        profile = self._Xn.T @ s_u.T
+        return np.asarray((self._Xn @ profile).todense()).ravel()
+
+    @property
+    def item_ids(self) -> np.ndarray | None:
+        """Item id for each score-vector position."""
+        return self._item_ids
+
     def recommend(
         self,
         user_id: int,
         k: int,
         exclude: Iterable[int] | None = None,
     ) -> list[int]:
-        if self._Xn is None or user_id not in self._user_pos:
+        scores = self.score_vector(user_id)
+        if scores is None:
             return []  # unknown user → no CF signal (caller may fall back)
-
-        # s_u: this user's centred ratings as a (1 × items) sparse row.
-        s_u = self._Rc[self._user_pos[user_id]]
-
-        # scores = Xn @ (Xnᵀ @ s_uᵀ) — the two-step sparse product from the docstring.
-        profile = self._Xn.T @ s_u.T        # users × 1 : the user's taste profile
-        scores = np.asarray((self._Xn @ profile).todense()).ravel()  # items × 1
 
         # Never recommend items the user already has (or an explicit exclude set).
         exclude = set(exclude or ())

@@ -27,6 +27,8 @@ SYSTEM_PROMPT = (
     "- When the user mentions a movie, call `search_movies` first to resolve it "
     "to a movieId, then `similar_movies` for recommendations.\n"
     "- For an existing userId, use `recommend_for_user`.\n"
+    "- When the user describes a vibe/plot instead of naming a movie (e.g. 'a "
+    "heist with a twist'), use `search_by_description` (semantic search).\n"
     "- Keep answers concise, list a handful of picks, and briefly say why each "
     "fits (genre overlap, shared fans). Answer in the user's language."
 )

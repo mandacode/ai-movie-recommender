@@ -17,7 +17,12 @@ from pathlib import Path
 from src.data import load_movielens
 from src.eda import summarize
 from src.evaluation import evaluate
-from src.recommenders import ItemCFRecommender, PopularityRecommender
+from src.recommenders import (
+    ItemCFRecommender,
+    PopularityRecommender,
+    SVDRecommender,
+    XGBRankerRecommender,
+)
 from src.recommenders.base import Recommender
 from src.reporting import save_metrics
 from src.split import per_user_leave_last_n
@@ -35,6 +40,8 @@ MODELS: dict[str, Recommender] = {
     "popularity_baseline": PopularityRecommender(scoring="count"),
     "cf_adjusted_cosine": ItemCFRecommender(min_item_ratings=5, center=True),
     "cf_positive_only": ItemCFRecommender(min_item_ratings=5, positive_only=True),
+    "svd": SVDRecommender(n_factors=50, positive_only=True),
+    "xgboost": XGBRankerRecommender(),
 }
 
 
@@ -45,8 +52,11 @@ def main() -> None:
     # 2. Exploratory data analysis
     summarize(ml)
 
-    # 3. Per-user leave-last-N split (train on the past, test on the future)
-    train, test = per_user_leave_last_n(ml.ratings, n=LEAVE_N)
+    # 3. Enrich ratings with movie metadata (genres, year) so a single `train`
+    #    frame carries everything models might need — popularity/CF ignore the
+    #    extra columns, XGBoost uses them. Then per-user leave-last-N split.
+    ratings = ml.ratings.merge(ml.movies[["movieId", "genres", "year"]], on="movieId", how="left")
+    train, test = per_user_leave_last_n(ratings, n=LEAVE_N)
     print("=" * 60)
     print(f"Split: leave-last-{LEAVE_N} per user  →  train={len(train):,}  test={len(test):,}")
     print(f"Test users evaluated: {test['userId'].nunique():,}")
