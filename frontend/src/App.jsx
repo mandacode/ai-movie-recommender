@@ -177,7 +177,6 @@ function Detail({ movie, similar, onBack, onOpen, onToggleLike }) {
               onClick={() => onToggleLike(movie)}>
               <i className="ph ph-thumbs-up" /> {movie.liked ? "Liked" : "Like"}
             </button>
-            <button className="btn btn-secondary btn-icon" title="Add to list"><i className="ph ph-plus" /></button>
           </div>
           {movie.synopsis && <p className="detail-synopsis">{movie.synopsis}</p>}
           <div className="credits">

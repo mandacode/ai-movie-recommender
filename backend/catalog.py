@@ -19,12 +19,13 @@ from src.recommenders import ItemCFRecommender, PopularityRecommender, SVDRecomm
 
 LIKE = 4.0
 KRYSTIAN_ID = 9999
+JULIA_ID = 9998
 
-# Demo profiles: real MovieLens user ids + invented names, plus a fresh user.
+# Fresh users (cold-start, 0 base ratings) first, then MovieLens demo profiles.
 PROFILES = [
+    (KRYSTIAN_ID, "Krystian"), (JULIA_ID, "Julia"),
     (414, "Ava Renn"), (599, "Milo Frost"), (474, "Nadia Voss"), (448, "Theo Marsh"),
     (274, "Iris Kane"), (68, "Leo Barnes"), (380, "Sena Ito"), (610, "Cass Okoro"),
-    (KRYSTIAN_ID, "Krystian"),
 ]
 
 
