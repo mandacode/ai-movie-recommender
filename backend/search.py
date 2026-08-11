@@ -47,18 +47,23 @@ class HybridSearch:
         return [r[0] for r in rows]
 
     def _semantic_search(self, q: str, n: int = 120) -> list[int]:
-        if self._model is None:
-            from sentence_transformers import SentenceTransformer
+        # Fail-safe: if the embedding model can't load (e.g. offline), fall back
+        # to FTS-only rather than breaking search entirely.
+        try:
+            if self._model is None:
+                from sentence_transformers import SentenceTransformer
 
-            self._model = SentenceTransformer("all-MiniLM-L6-v2")
-        vec = self._model.encode([q], normalize_embeddings=True)[0]
-        vec_str = "[" + ",".join(f"{x:.6f}" for x in vec) + "]"
-        rows = query(
-            "SELECT movie_id FROM movies WHERE embedding IS NOT NULL "
-            "ORDER BY embedding <=> %s::vector LIMIT %s",
-            (vec_str, n),
-        )
-        return [r[0] for r in rows]
+                self._model = SentenceTransformer("all-MiniLM-L6-v2")
+            vec = self._model.encode([q], normalize_embeddings=True)[0]
+            vec_str = "[" + ",".join(f"{x:.6f}" for x in vec) + "]"
+            rows = query(
+                "SELECT movie_id FROM movies WHERE embedding IS NOT NULL "
+                "ORDER BY embedding <=> %s::vector LIMIT %s",
+                (vec_str, n),
+            )
+            return [r[0] for r in rows]
+        except Exception:
+            return []
 
     def search(self, q: str, k: int = 60) -> list[int]:
         q = q.strip()

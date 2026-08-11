@@ -362,6 +362,17 @@ export default function App() {
         <span className="brand">Mandaflix</span>
         <span>An AI movie recommendations project based on the MovieLens dataset.</span>
       </footer>
+      <nav className="tabbar">
+        <button className={view === "home" ? "active" : ""} onClick={() => nav("home")}>
+          <i className="ph ph-house" /><span>Home</span>
+        </button>
+        <button className={view === "search" ? "active" : ""} onClick={() => setView("search")}>
+          <i className="ph ph-magnifying-glass" /><span>Search</span>
+        </button>
+        <button className={view === "insights" ? "active" : ""} onClick={() => nav("insights")}>
+          <i className="ph ph-chart-bar" /><span>Insights</span>
+        </button>
+      </nav>
     </div>
   );
 }
