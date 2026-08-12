@@ -73,9 +73,11 @@ class HybridSearch:
         q = q.strip()
         if not q:
             return []
-        # FTS weighted higher: keyword/title queries shouldn't be diluted by
-        # semantic noise, while vibe queries (empty FTS) still lean on semantic.
-        return _rrf((self._fts_search(q), 2.0), (self._semantic_search(q), 1.0))[:k]
+        # Short keyword/title queries ("lord") trust FTS — a single vague word is
+        # meaningless to the embedder and just injects noise. Descriptive queries
+        # ("lonely robot in space") get the full semantic weight.
+        sem_w = 1.0 if len(_tokens(q)) >= 3 else 0.25
+        return _rrf((self._fts_search(q), 2.0), (self._semantic_search(q), sem_w))[:k]
 
 
 def _known_item_metrics(ranked: list[int], target: int, k: int = 10):
