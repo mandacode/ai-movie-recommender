@@ -21,3 +21,6 @@ backend/datasets/tmdb_cache.db
 *.npz
 *.parquet
 _to_delete/
+
+# UI mockup bundles (design refs, not shipped)
+*.zip
