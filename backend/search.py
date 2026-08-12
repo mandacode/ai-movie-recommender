@@ -73,11 +73,17 @@ class HybridSearch:
         q = q.strip()
         if not q:
             return []
-        # Short keyword/title queries ("lord") trust FTS — a single vague word is
-        # meaningless to the embedder and just injects noise. Descriptive queries
-        # ("lonely robot in space") get the full semantic weight.
-        sem_w = 1.0 if len(_tokens(q)) >= 3 else 0.25
-        return _rrf((self._fts_search(q), 2.0), (self._semantic_search(q), sem_w))[:k]
+        # Adaptive fusion by query length: short keyword/title queries ("lord")
+        # trust FTS (a vague word means nothing to the embedder); long descriptive
+        # queries ("lonely robot finds friendship in space") lean on semantics.
+        n = len(_tokens(q))
+        if n <= 2:
+            fts_w, sem_w = 2.0, 0.25   # keyword / title
+        elif n >= 5:
+            fts_w, sem_w = 1.0, 2.0    # descriptive / vibe
+        else:
+            fts_w, sem_w = 1.5, 1.0    # in between
+        return _rrf((self._fts_search(q), fts_w), (self._semantic_search(q), sem_w))[:k]
 
 
 def _known_item_metrics(ranked: list[int], target: int, k: int = 10):
